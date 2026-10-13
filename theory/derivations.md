@@ -124,3 +124,21 @@ increment autocorrelation (trends); one with too many reversals has negative
 autocorrelation. We measure the lag-1 autocorrelation of Δp and the reversal rate
 (fraction of consecutive non-zero increments with opposite signs) and compare
 both with the same statistics from numpy WF trajectories run at the same N, p₀, G.
+
+## 4. Numerical checks (summary of `results/theory_checks.json`)
+
+* Eq. (2) and the alternation and run-length formulas agree with simulated Markov
+  chains to within Monte Carlo error (1–2%).
+* Eq. (3) (RNG mode, one bit per offspring) matches simulated Ne/N to within ~1.5%.
+* The dispersion generators have the intended variance, and Eq. (6) predicts the
+  simulated heterozygosity decay to within 1.5% for N = 50 and within 6% for N = 10
+  with φ = 0.5, where count discreteness matters.
+* Neutral fixation probability stays at p₀ for φ = 0.5 and φ = 2, as Eq. (7) predicts.
+* Kimura's formula with Ne = N/φ (Eq. 8) agrees within ~3% for N = 10 and is ~8%
+  low for N = 50, p₀ = 0.1, φ = 0.6. The difference comes from the rescaled-binomial
+  generator: rounding rint(φ·y) is biased upward at very low counts (y = 1 gives 1,
+  not 0.6), which protects rare alleles. This is a property of that generator, not
+  of the diffusion result, and it is a reminder that how a generator handles counts
+  near 0 and 2N matters for fixation.
+* Eq. (9) is accurate for φ ≥ 1 but overestimates absorption time by ~15% for N = 10,
+  φ = 0.5 (Ne = 20 is still small for the diffusion limit).
