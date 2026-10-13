@@ -16,6 +16,7 @@ import glob
 import json
 import os
 import re
+import time
 import sys
 from pathlib import Path
 
@@ -87,6 +88,9 @@ def main(wf_dirs, task_outputs):
                     continue
                 rec = parse_agent(path)
                 if rec["t_end"] is None:
+                    continue
+                # an agent still running has no response yet; leave it for a later pass
+                if rec["response"] is None and time.time() - os.path.getmtime(path) < 900:
                     continue
                 rec["workflow_run"] = os.path.basename(d.rstrip("/"))
                 f.write(json.dumps(rec) + "\n")

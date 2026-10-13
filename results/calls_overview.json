@@ -1,0 +1,46 @@
+{
+ "total_calls": 737,
+ "by_phase": {
+  "full": 707,
+  "pilot": 30
+ },
+ "by_kind": {
+  "full|bits": 264,
+  "full|direct": 206,
+  "full|ml": 237,
+  "pilot|bits": 9,
+  "pilot|direct": 12,
+  "pilot|ml": 6,
+  "pilot|traj": 3
+ },
+ "by_model": {
+  "haiku": 273,
+  "opus": 184,
+  "sonnet": 280
+ },
+ "served_models": {
+  "haiku": [
+   "claude-haiku-5-5"
+  ],
+  "opus": [
+   "claude-opus-5-5"
+  ],
+  "sonnet": [
+   "claude-sonnet-5-5"
+  ]
+ },
+ "valid": 737,
+ "other_tools": 0,
+ "median_secs": {
+  "haiku": 4.188,
+  "opus": 4.101,
+  "sonnet": 3.2965
+ },
+ "total_ctx_tokens": 48000995,
+ "total_out_tokens": 85834,
+ "mean_ctx_tokens": {
+  "haiku": 86950.73626373627,
+  "opus": 51907.608695652176,
+  "sonnet": 52544.44285714286
+ }
+}

@@ -1,0 +1,10 @@
+{
+ "memoryless": [],
+ "whole": [],
+ "numpy": [],
+ "validity": {
+  "whole": {},
+  "memoryless_calls": 237,
+  "memoryless_retries": 0
+ }
+}
