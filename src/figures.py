@@ -283,7 +283,7 @@ def fig_dependence():
     ax.set_title("b  Draws within one call")
     ax = axes[2]
     w = 0.25
-    labs = ["numpy", "fresh call", "whole traj."]
+    labs = ["numpy", "fresh\ncall", "whole\ntraj."]
     for k, m in enumerate(MODELS):
         ml = [x for x in t["memoryless"] if x["model"] == m and x["N"] == 10 and x["s"] == 0 and x["p0"] == 0.5]
         wh = [x for x in t["whole"] if x["model"] == m and x["N"] == 10 and x["s"] == 0 and x["p0"] == 0.5]
