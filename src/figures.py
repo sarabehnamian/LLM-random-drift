@@ -150,11 +150,13 @@ def fig_ne():
         hi = [max(x["NeN_ci"][1] - x["NeN"], 0) for x in rows]
         ax.errorbar(xs, y, yerr=[lo, hi], fmt=MRK[m], color=COL[m], ms=5, capsize=2, lw=1, label=m)
         ax.plot(xs, [x["NeN_pred_markov"] for x in rows], "_", color=COL[m], ms=11, mew=2)
+        ax.plot(xs, [x["NeN_pred_acf"] for x in rows], "x", color=COL[m], ms=6, mew=1.2)
     ax.axhline(1, color=THEORY, lw=1, ls="--")
-    ax.set_xticks(range(4), [f"p = {p}" for p in [0.05, 0.2, 0.5, 0.8]])
+    ax.set_xticks(range(4), ["0.05", "0.2", "0.5", "0.8"])
+    ax.set_xlabel("requested p")
     ax.set_ylabel(r"$N_e/N$")
     ax.set_yscale("log")
-    ax.set_title("c  RNG mode, N = 10 (bar: eq. 3)")
+    ax.set_title("c  RNG mode, N = 10")
     save(fig, "fig3_ne")
 
 
@@ -299,3 +301,41 @@ if __name__ == "__main__":
     fig_fix()
     fig_traj()
     fig_dependence()
+
+
+# ---------------------------------------------------------------- fig 8
+def fig_ne_modes():
+    d = load("direct.json")
+    t = load("trajectories.json")
+    r = load("rng_mode.json")
+    labels, vals = [], {m: [] for m in MODELS}
+    for N in [10, 50, 200]:
+        labels.append(f"direct\nN={N}")
+        for m in MODELS:
+            row = next((x for x in d["summary"] if x["model"] == m and x["N"] == N and x["phrasing"] == "plain+wf"), None)
+            vals[m].append(row["NeN"] if row else np.nan)
+    for mode, lab in [("memoryless", "fresh call\n/gen"), ("whole", "whole\ntraj.")]:
+        for N in [10, 50]:
+            labels.append(f"{lab}\nN={N}")
+            for m in MODELS:
+                row = next((x for x in t[mode] if x["model"] == m and x["N"] == N and x["s"] == 0 and x["p0"] == 0.5), None)
+                vals[m].append(row["NeN"] if row else np.nan)
+    labels.append("RNG mode\nN=10, p=0.5")
+    for m in MODELS:
+        row = next(x for x in r["one_bit"] if x["model"] == m and x["N"] == 10 and x["p"] == 0.5)
+        vals[m].append(row["NeN"])
+    fig, ax = plt.subplots(figsize=(7.4, 3.0))
+    x = np.arange(len(labels))
+    for k, m in enumerate(MODELS):
+        ax.plot(x + (k - 1) * 0.18, vals[m], MRK[m], color=COL[m], ms=6, label=m, ls="none")
+    ax.axhline(1, color=THEORY, lw=1, ls="--", label="exact WF")
+    ax.set_yscale("log")
+    ax.set_yticks([0.5, 1, 2, 4, 8, 16], ["0.5", "1", "2", "4", "8", "16"])
+    ax.set_xticks(x, labels, fontsize=7)
+    ax.set_ylabel(r"$N_e/N$  (> 1: drift too slow)")
+    ax.legend(frameon=False, ncol=4, fontsize=7.5, loc="upper left")
+    save(fig, "fig8_ne_by_mode")
+
+
+if __name__ == "__main__":
+    fig_ne_modes()

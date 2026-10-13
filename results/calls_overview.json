@@ -1,7 +1,7 @@
 {
- "total_calls": 1132,
+ "total_calls": 1193,
  "by_phase": {
-  "full": 1102,
+  "full": 1163,
   "pilot": 30
  },
  "by_kind": {
@@ -9,7 +9,7 @@
   "full|bits-dup": 12,
   "full|direct": 324,
   "full|direct-dup": 12,
-  "full|ml": 403,
+  "full|ml": 464,
   "full|traj": 87,
   "pilot|bits": 9,
   "pilot|direct": 12,
@@ -17,7 +17,7 @@
   "pilot|traj": 3
  },
  "by_model": {
-  "haiku": 372,
+  "haiku": 433,
   "opus": 381,
   "sonnet": 379
  },
@@ -32,17 +32,17 @@
    "claude-sonnet-5-5"
   ]
  },
- "valid": 1132,
+ "valid": 1193,
  "other_tools": 0,
  "median_secs": {
-  "haiku": 4.5245,
+  "haiku": 4.596,
   "opus": 3.94,
   "sonnet": 3.31
  },
- "total_ctx_tokens": 76774186,
- "total_out_tokens": 138525,
+ "total_ctx_tokens": 82562132,
+ "total_out_tokens": 140256,
  "mean_ctx_tokens": {
-  "haiku": 89264.34946236559,
+  "haiku": 90056.0831408776,
   "opus": 61810.0813648294,
   "sonnet": 52818.48812664908
  }

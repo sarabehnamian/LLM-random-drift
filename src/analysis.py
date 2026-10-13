@@ -215,8 +215,17 @@ def analyse_rng(bits_out, seqs):
             xs = np.concatenate([x[:-1] for x in L]).astype(float)
             ys = np.concatenate([x[1:] for x in L]).astype(float)
             rho = float(np.corrcoef(xs, ys)[0, 1]) if xs.std() > 0 and ys.std() > 0 else 0.0
+            # empirical autocovariances pooled within calls (centred on the pooled mean)
+            mu = stream.mean()
+            gam = [float(np.mean(np.concatenate([(x - mu) ** 2 for x in L])))]
+            for lag in range(1, 200):
+                xs_ = np.concatenate([(x[:-lag] - mu) for x in L if len(x) > lag])
+                ys_ = np.concatenate([(x[lag:] - mu) for x in L if len(x) > lag])
+                gam.append(float(np.mean(xs_ * ys_)) if len(xs_) > 50 else 0.0)
             for N in [10, 50, 200]:
                 n = 2 * N
+                K = min(n, len(gam))
+                var_acf = (n * gam[0] + 2 * sum((n - k) * gam[k] for k in range(1, K))) / n ** 2
                 w = len(stream) // n
                 if w < 5:
                     continue
@@ -232,7 +241,9 @@ def analyse_rng(bits_out, seqs):
                     model=m, p=p, N=N, windows=int(w), pi=float(pi), rho=rho, mean_dp=float(dp.mean()),
                     var_dp=float(var), var_wf=p * (1 - p) / n,
                     NeN=float(wf.ne_from_var(p, var) / N) if var > 0 else float("inf"), NeN_ci=ci(bs),
-                    NeN_pred_markov=float(wf.ne_ratio_rng_bits(p, pi, rho, n)) if 0 < pi < 1 else float("nan")))
+                    NeN_pred_markov=float(wf.ne_ratio_rng_bits(p, pi, rho, n)) if 0 < pi < 1 else float("nan"),
+                    NeN_pred_acf=float(wf.ne_from_var(p, var_acf) / N) if var_acf > 0 else float("inf"),
+                    acf_lags_used=int(K)))
     # fair-coin scheme, multi-generation, N = 10, p0 = 0.5, until absorption or bits run out
     for m in MODELS:
         L = seqs.get((m, "plain", 0.5, False), []) + seqs.get((m, "rng", 0.5, False), [])
@@ -485,6 +496,56 @@ def analyse_trajectories(calls):
             st.update(model=model, N=N, s=s, p0=i0 / twoN, events=len(r["events"]),
                       gens_run=len(r["traj"]) - 1)
             out["memoryless"].append(st)
+    # ---- per-transition conditional mean and variance (memoryless and whole-trajectory runs)
+    trans = []
+    def add_trans(model, mode, N, s, T):
+        twoN = 2 * N
+        xs, ys = [], []
+        for t in T:
+            t = np.asarray(t)
+            for a, b in zip(t[:-1], t[1:]):
+                if 0 < a < twoN:
+                    xs.append(a)
+                    ys.append(b)
+        xs, ys = np.array(xs), np.array(ys)
+        edges = [0, 0.15, 0.35, 0.65, 0.85, 1.0001]
+        for lo, hi in zip(edges[:-1], edges[1:]):
+            sel = (xs / twoN >= lo) & (xs / twoN < hi)
+            if sel.sum() < 10:
+                continue
+            p0 = xs[sel] / twoN
+            m = wf.p_sel(p0, s)
+            dp = ys[sel] / twoN - p0
+            resid = ys[sel] / twoN - m
+            trans.append(dict(model=model, mode=mode, N=N, s=s, bin=[lo, min(hi, 1.0)], n=int(sel.sum()),
+                              mean_dp=float(dp.mean()), mean_dp_wf=float((m - p0).mean()),
+                              phi=float(np.mean(resid ** 2) / np.mean(m * (1 - m) / twoN))))
+        # whole-range selection estimate: regress dp on p(1-p)
+        if s > 0 and len(xs):
+            p0 = xs / twoN
+            dp = ys / twoN - p0
+            w = p0 * (1 - p0)
+            trans.append(dict(model=model, mode=mode, N=N, s=s, bin="all", n=int(len(xs)),
+                              s_eff=float((w * dp).sum() / (w * w).sum()), s_true_approx=float(
+                                  ((w * (wf.p_sel(p0, s) - p0)).sum() / (w * w).sum()))))
+        # neutral drift toward 0.5? regress dp on (p - 0.5)
+        if s == 0 and len(xs):
+            p0 = xs / twoN
+            dp = ys / twoN - p0
+            c = p0 - 0.5
+            trans.append(dict(model=model, mode=mode, N=N, s=s, bin="all", n=int(len(xs)),
+                              pull=float((c * dp).sum() / (c * c).sum()), mean_dp=float(dp.mean())))
+    for r in load_memoryless("full_"):
+        add_trans(r["model"], "memoryless", r["N"], r["s"], np.array(r["traj"]).T.tolist())
+    tmp = defaultdict(list)
+    for c in calls:
+        if c["kind"] == "traj" and c["response"]:
+            for t in c["response"].get("trajectories") or []:
+                tmp[(c["model"], c["N"], c["s"])].append([min(max(x, 0), 2 * c["N"]) for x in t])
+    for (m, N, s), T in sorted(tmp.items()):
+        add_trans(m, "whole", N, s, T)
+    out["transitions"] = trans
+
     # ---- whole trajectories
     tc = [c for c in calls if c["kind"] == "traj"]
     bad = defaultdict(int)
