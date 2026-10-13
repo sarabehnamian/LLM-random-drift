@@ -5,6 +5,7 @@ Writes configs/jobs_<phase>.jsonl (one job per line) and workflow scripts in
 workflows/. Jobs already present in data/raw/calls.jsonl are skipped, so the
 run is resumable.
 """
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -19,27 +20,36 @@ NS = [10, 50, 200]
 PS = [0.05, 0.2, 0.5, 0.8]
 
 
+def run_code(job_id, use=True):
+    """Deterministic 6-character label that makes replicate prompts differ."""
+    return hashlib.sha256(job_id.encode()).hexdigest()[:6] if use else None
+
+
 def count_for(N, p):
     return int(round(2 * N * p))
 
 
-def bits_job(model, phr, p, rep, n, phase):
-    return dict(id=f"{phase}|bits|{model}|{phr}|p{p}|r{rep}", kind="bits", model=model,
-                phrasing=phr, p=p, n=n, rep=rep, schema="bits", prompt=render_bits(phr, n, p))
+def bits_job(model, phr, p, rep, n, phase, code=True, extra=""):
+    jid = f"{phase}|bits{extra}|{model}|{phr}|p{p}|r{rep}"
+    c = run_code(jid, code and phase != "pilot")
+    return dict(id=jid, kind="bits", model=model, phrasing=phr, p=p, n=n, rep=rep, code=c,
+                schema="bits", prompt=render_bits(phr, n, p, c))
 
 
-def direct_job(model, phr, N, p, s, rep, k, phase):
+def direct_job(model, phr, N, p, s, rep, k, phase, code=True, extra=""):
     i = count_for(N, p)
-    return dict(id=f"{phase}|direct|{model}|{phr}|N{N}|p{p}|s{s}|r{rep}", kind="direct", model=model,
-                phrasing=phr, N=N, p=p, i=i, s=s, k=k, rep=rep, schema="counts",
-                prompt=render_direct(phr, N, i, k, s))
+    jid = f"{phase}|direct{extra}|{model}|{phr}|N{N}|p{p}|s{s}|r{rep}"
+    c = run_code(jid, code and phase != "pilot")
+    return dict(id=jid, kind="direct", model=model, phrasing=phr, N=N, p=p, i=i, s=s, k=k, rep=rep,
+                code=c, schema="counts", prompt=render_direct(phr, N, i, k, s, code=c))
 
 
 def traj_job(model, N, p, s, rep, k, G, phase):
     i = count_for(N, p)
-    return dict(id=f"{phase}|traj|{model}|N{N}|p{p}|s{s}|r{rep}", kind="traj", model=model,
-                N=N, p=p, i=i, s=s, k=k, G=G, rep=rep, schema="trajectories",
-                prompt=render_trajectory(N, i, k, G, s))
+    jid = f"{phase}|traj|{model}|N{N}|p{p}|s{s}|r{rep}"
+    c = run_code(jid, phase != "pilot")
+    return dict(id=jid, kind="traj", model=model, N=N, p=p, i=i, s=s, k=k, G=G, rep=rep, code=c,
+                schema="trajectories", prompt=render_trajectory(N, i, k, G, s, c))
 
 
 def pilot():
@@ -67,7 +77,7 @@ def full():
     for m in MODELS:
         for p in PS:
             for phr in ["plain", "rng"]:
-                for r in range(8):
+                for r in range(20 if p == 0.5 else 8):  # extra fair bits feed RNG mode
                     jobs.append(bits_job(m, phr, p, r, 300, "full"))
     # Q2 direct mode, one generation, 20 draws per call
     for m in MODELS:
@@ -81,6 +91,11 @@ def full():
         for p in PS:  # third phrasing on N = 50 only
             for r in range(3):
                 jobs.append(direct_job(m, "rng", 50, p, 0.0, r, 20, "full"))
+    # determinism test: identical prompts (no run code) repeated 4 times
+    for m in MODELS:
+        for r in range(4):
+            jobs.append(bits_job(m, "plain", 0.5, r, 300, "full", code=False, extra="-dup"))
+            jobs.append(direct_job(m, "wf", 50, 0.5, 0.0, r, 20, "full", code=False, extra="-dup"))
     # Q4 whole trajectories in one call
     for m in MODELS:
         for p in PS:

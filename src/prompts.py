@@ -119,21 +119,28 @@ def sel_clause(s):
     return SEL_CLAUSE.format(s=_fmt(s)) if s else ""
 
 
-def render_bits(phrasing, n, p):
-    return PREAMBLE + BITS[phrasing].format(n=n, p=_fmt(p), q=_fmt(round(1 - p, 10)))
+RUN_CODE = "\n\nRun code: {code} (an arbitrary label used only for bookkeeping)."
 
 
-def render_direct(phrasing, N, i, k, s=0.0, t=10):
+def _code(code):
+    return RUN_CODE.format(code=code) if code else ""
+
+
+def render_bits(phrasing, n, p, code=None):
+    return PREAMBLE + BITS[phrasing].format(n=n, p=_fmt(p), q=_fmt(round(1 - p, 10))) + _code(code)
+
+
+def render_direct(phrasing, N, i, k, s=0.0, t=10, code=None):
     twoN = 2 * N
     return PREAMBLE + DIRECT[phrasing].format(
         N=N, twoN=twoN, i=i, p=_fmt(round(i / twoN, 4)), k=k, sel=sel_clause(s), t=t, t1=t + 1
-    )
+    ) + _code(code)
 
 
-def render_trajectory(N, i, k, G, s=0.0):
+def render_trajectory(N, i, k, G, s=0.0, code=None):
     return PREAMBLE + TRAJECTORY.format(
         N=N, twoN=2 * N, i=i, k=k, G=G, G1=G + 1, sel=sel_clause(s)
-    )
+    ) + _code(code)
 
 
 def memoryless_template(N, s, m_placeholder="{m}"):
