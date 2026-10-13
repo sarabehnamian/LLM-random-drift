@@ -70,14 +70,15 @@ def analyse_bits(calls):
     bc = [c for c in calls if c["kind"] == "bits" and c["response"] and "bits" in c["response"]]
     rows, seqs = [], defaultdict(list)
     for c in bc:
-        b = parse_bits(c["response"]["bits"])
+        b_all = parse_bits(c["response"]["bits"])
+        b = b_all[: c["n"]]  # analyse the requested number of digits; extra output is reported, not used
         if len(b) < 10:
             continue
         dup = c["id"].split("|")[1] == "bits-dup"
         key = (c["model"], c["phrasing"], c["p"], dup)
         seqs[key].append(np.array(b, np.int8))
         rows.append(dict(id=c["id"], model=c["model"], phrasing=c["phrasing"], p=c["p"], dup=dup,
-                         n_req=c["n"], n=len(b), freq=float(np.mean(b)),
+                         n_req=c["n"], n=len(b_all), freq=float(np.mean(b)),
                          alt=float(np.mean(np.diff(b) != 0)), rho1=autocorr(b, 1)))
     df = pd.DataFrame(rows)
     df.to_csv(RES / "bits_calls.csv", index=False)
@@ -116,10 +117,11 @@ def analyse_bits(calls):
         alt_first = float(np.mean(np.concatenate([np.diff(x[:50]) != 0 for x in L])))
         alt_rest = float(np.mean(np.concatenate([np.diff(x[50:]) != 0 for x in L if len(x) > 52])))
         er = float(np.mean([entropy_rate(x, 3) for x in L if len(x) >= 50]))
+        lens = df[(df.model == m) & (df.phrasing == phr) & (df.p == p) & (~df.dup)].n
         summary.append(dict(
             model=m, phrasing=phr, p=p, calls=len(L), bits=int(len(allb)),
-            len_mean=float(np.mean([len(x) for x in L])), len_min=int(min(len(x) for x in L)),
-            len_max=int(max(len(x) for x in L)),
+            len_mean=float(lens.mean()), len_min=int(lens.min()), len_max=int(lens.max()),
+            len_exact=float(np.mean(lens == 300)), len_short=float(np.mean(lens < 300)),
             freq=freq, freq_ci=ci(bs_f), alt=alt, alt_ci=ci(bs_alt), alt_iid=2 * p * (1 - p),
             alt_iid_at_freq=2 * freq * (1 - freq), rho_lags=lags, rho1=rho,
             mean_run1=float(np.mean(runs1)) if runs1 else float("nan"),
