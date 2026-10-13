@@ -109,7 +109,7 @@ Every entry was confirmed with web search on 2026-10-13. Each one lists its BibT
   - This is the benchmark our LLM-driven fixation probabilities should meet.
   - URL: https://pmc.ncbi.nlm.nih.gov/articles/PMC16552/ (reference list giving the DOI); PDF https://www.zoology.ubc.ca/~mmosmond/let/pdfs/Kimura_1962.pdf
 - **kimura1969average**: Genetics 61(3):763–771.
-  - Mean time to fixation. For a new neutral mutant it is about 4Ne generations. More generally it is -4N[p ln p + (1-p) ln(1-p)]/... in the diffusion limit (see paper).
+  - Diffusion results for the mean time to fixation. Conditional on fixation, a new neutral mutant takes about 4Ne generations; the paper also gives the general formula for initial frequency p.
   - This is the benchmark for our conditional fixation times.
   - URL: https://pubmed.ncbi.nlm.nih.gov/17248440/
 - **ewens2004mathematical**: Springer, 2nd ed., Interdisciplinary Applied Mathematics vol. 27.
@@ -162,4 +162,4 @@ Every entry was confirmed with web search on 2026-10-13. Each one lists its BibT
 
 - "Renda et al." as a separate paper: the only Renda work found is the Hopkins, Renda & Carbin workshop paper (equal contribution, author order set by coin flip).
 - Zhang et al. 2024: the COLM 2024 acceptance could not be confirmed, so it is cited as arXiv.
-- Kimura & Ohta 1969 note: the exact general formula above is abbreviated. Quote it from the paper itself.
+- Kimura & Ohta 1969: take the general fixation-time formula for initial frequency p from the paper itself; it is not reproduced here.
