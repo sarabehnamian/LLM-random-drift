@@ -223,6 +223,24 @@ for m in MODELS:
     "Model & $N=10$ & $N=50$ & $N=200$ & $N=10$ & $N=10$ \\\\\n\\midrule\n"
     + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
 
+# derived ranges quoted in the discussion
+dne = [x["NeN"] for x in dr["summary"] if x["phrasing"] == "plain+wf"]
+mac("dNeMin", min(dne))
+mac("dNeMax", max(dne))
+traj_ne = [x["NeN"] for mode in ["memoryless", "whole"] for x in tr[mode] if x["p0"] == 0.5 and x["s"] == 0]
+mac("trajNeMin", min(traj_ne), "{:.1f}")
+mac("trajNeMax", max(traj_ne), "{:.1f}")
+rng_half = [x for x in rng_["one_bit"] if x["p"] == 0.5 and x["N"] == 10]
+mac("rngNeMin", min(x["NeN"] for x in rng_half), "{:.1f}")
+mac("rngNeMax", max(x["NeN"] for x in rng_half), "{:.1f}")
+mac("markovUnderFactor", max(x["NeN"] / x["NeN_pred_markov"] for x in rng_half), "{:.0f}")
+wh_s = [t["s_eff"] for t in tr["transitions"] if t["mode"] == "whole" and t["bin"] == "all" and t["s"] > 0]
+s_true = [t["s_true_approx"] for t in tr["transitions"] if t["mode"] == "whole" and t["bin"] == "all" and t["s"] > 0][0]
+mac("whSexMin", 100 * (min(wh_s) / s_true - 1), "{:.0f}")
+mac("whSexMax", 100 * (max(wh_s) / s_true - 1), "{:.0f}")
+calls_tr = [c for c in json.load(open(RES / "trajectories.json"))["whole"]]
+mac("nWhTraj", sum(x["n"] for x in calls_tr), "{:d}")
+
 # theory checks
 mac("thMaxVarErr", 100 * max(abs(r["var_sim"] / r["var_pred"] - 1) for r in th["markov_sum_variance"]), "{:.1f}")
 mac("thMaxNeErr", 100 * max(abs(r["NeN_sim"] / r["NeN_pred"] - 1) for r in th["rng_one_bit_Ne"]), "{:.1f}")

@@ -57,7 +57,10 @@ def parse_agent(path):
                 c = "\n".join(x.get("text", "") for x in c if isinstance(x, dict))
             rec["prompt"] = extract_prompt(c or "")
         if d.get("type") == "assistant":
-            rec["served_model"] = msg.get("model") or rec["served_model"]
+            served = msg.get("model") or ""
+            # keep only the model family of the served model (haiku / sonnet / opus)
+            fam = next((f for f in ("haiku", "sonnet", "opus") if f in served), None)
+            rec["served_model"] = fam or rec["served_model"]
             u = msg.get("usage") or {}
             rec["n_turns"] += 1
             rec["usage"]["input"] += u.get("input_tokens", 0) or 0

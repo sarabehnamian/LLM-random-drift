@@ -164,9 +164,9 @@ def fig_ne():
 def fig_het():
     t = load("trajectories.json")
     fig, axes = plt.subplots(1, 3, figsize=(7.6, 2.8), sharey=False)
-    panels = [(10, "memoryless", "a  N = 10, fresh call per generation"),
-              (10, "whole", "b  N = 10, whole trajectory per call"),
-              (50, "memoryless", "c  N = 50, fresh call per generation")]
+    panels = [(10, "memoryless", "a  N = 10, fresh call/gen."),
+              (10, "whole", "b  N = 10, whole trajectory"),
+              (50, "memoryless", "c  N = 50, fresh call/gen.")]
     for ax, (N, mode, title) in zip(axes, panels):
         ref = next(x for x in t["numpy"] if x["N"] == N and x["p0"] == 0.5 and x["s"] == 0)
         G = len(ref["H"]) - 1
@@ -189,7 +189,7 @@ def fig_het():
 # ---------------------------------------------------------------- fig 5
 def fig_fix():
     t = load("trajectories.json")
-    fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.0), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.4), sharey=True)
     for ax, s in zip(axes, [0.0, 0.05]):
         x = np.linspace(0, 1, 100)
         ax.plot(x, wf.kimura_u(x, 10, s), color=THEORY, lw=1.2, ls="--",
@@ -213,8 +213,13 @@ def fig_fix():
         ax.set_xlabel("starting frequency $p_0$")
         ax.set_title(f"{'a' if s == 0 else 'b'}  N = 10, s = {s:g}")
     axes[0].set_ylabel("fraction fixed by generation 40")
-    axes[1].legend(frameon=False, fontsize=6, loc="lower right")
-    save(fig, "fig5_fixation")
+    h, l = axes[1].get_legend_handles_labels()
+    fig.legend(h, l, frameon=False, fontsize=6.5, ncol=4, loc="lower center", bbox_to_anchor=(0.5, -0.02))
+    fig.tight_layout(rect=(0, 0.13, 1, 1))
+    fig.savefig(FIG / "fig5_fixation.png", bbox_inches="tight")
+    fig.savefig(FIG / "fig5_fixation.pdf", bbox_inches="tight")
+    plt.close(fig)
+    print("wrote fig5_fixation")
 
 
 # ---------------------------------------------------------------- fig 6

@@ -23,13 +23,13 @@
  },
  "served_models": {
   "haiku": [
-   "claude-haiku-5-5"
+   "haiku"
   ],
   "opus": [
-   "claude-opus-5-5"
+   "opus"
   ],
   "sonnet": [
-   "claude-sonnet-5-5"
+   "sonnet"
   ]
  },
  "valid": 1193,
