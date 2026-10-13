@@ -23,7 +23,7 @@ plt.rcParams.update({
     "figure.dpi": 200, "savefig.dpi": 200, "font.size": 9, "axes.titlesize": 9.5,
     "axes.labelsize": 9, "legend.fontsize": 8, "axes.spines.top": False, "axes.spines.right": False,
     "axes.grid": True, "grid.color": "#e6e6e6", "grid.linewidth": 0.6, "lines.linewidth": 1.6,
-    "font.family": "DejaVu Sans",
+    "font.family": "DejaVu Sans", "axes.axisbelow": True,
 })
 
 
@@ -225,8 +225,8 @@ def fig_traj():
     mem = {r["tag"]: r for r in load_memoryless("full_")}
     fig, axes = plt.subplots(3, 3, figsize=(7.4, 6.0), sharex=True, sharey=True)
     rngl = np.random.default_rng(wf.SEED + 7)
-    np_tr = wf.wf_trajectories(rngl, 10, 0.5, 40, 4)
     for i, m in enumerate(MODELS):
+        np_tr = wf.wf_trajectories(rngl, 10, 0.5, 40, 4)
         ml = mem.get(f"full|ml|{m}|N10|s0.0")
         if ml:
             tr = np.array(ml["traj"]).T

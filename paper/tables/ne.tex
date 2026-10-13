@@ -1,0 +1,11 @@
+\begin{tabular}{lcccccccc}
+\toprule
+ & \multicolumn{3}{c}{direct, one generation} & \multicolumn{2}{c}{fresh call per generation} & \multicolumn{2}{c}{whole trajectory} & RNG mode \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-9}
+Model & $N=10$ & $N=50$ & $N=200$ & $N=10$ & $N=50$ & $N=10$ & $N=50$ & $N=10$, $p=0.5$ \\
+\midrule
+Haiku & 1.21 & 1.52 & 1.53 & 4.59 & 3.46 & 2.18 & 2.01 & 6.5 \\
+Sonnet & 1.09 & 1.46 & 1.52 & 3.56 & 2.97 & 1.44 & 1.80 & 13.9 \\
+Opus & 1.18 & 1.06 & 1.04 & 1.65 & 1.28 & 1.16 & 1.31 & 12.7 \\
+\bottomrule
+\end{tabular}
